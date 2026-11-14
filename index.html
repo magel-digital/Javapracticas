@@ -28,7 +28,8 @@
 *{box-sizing:border-box}
 html{touch-action:manipulation;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
-body{overflow:hidden}
+body{overflow:hidden;max-width:100vw}
+.screen{width:100%;max-width:100vw;overflow-x:hidden}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;-webkit-user-select:none;user-select:none;touch-action:manipulation}
 input,textarea{font:inherit;color:inherit}
 code,pre{font-family:var(--mono)}
@@ -2745,7 +2746,7 @@ function openSettings() {
     <div class="setrow"><span>Copia de seguridad<br><small style="color:var(--mute)">Guarda tu progreso fuera del navegador</small></span><div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end"><button class="btn small" id="bkExp">Exportar</button><button class="btn small sec" id="bkImp">Importar</button></div></div>
     <div id="bkBox"></div>
     <div class="setrow"><span>Borrar todo el progreso</span><button class="btn small sec" id="rst">Borrar</button></div>
-    <p class="note">Teclado <b>Java</b>: teclado propio con símbolos y atajos de código. <b>Sistema</b>: el teclado del móvil, con una barra de símbolos encima.</p><button class="btn" style="width:100%" id="setOk">Listo</button>`, el => {
+    <p class="note">Teclado <b>Java</b>: teclado propio con símbolos y atajos de código. <b>Sistema</b>: el teclado del móvil, con una barra de símbolos encima.</p><button class="btn" style="width:100%" id="setOk">Listo</button><p style="text-align:center;color:var(--mute);font-size:12px;margin:12px 0 0">JavaPad · versión 1.2</p>`, el => {
     $('#setOk', el).onclick = closeSheet;
     el.addEventListener('click', ev => {
       const f = ev.target.closest('[data-fs]');
