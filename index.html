@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
 <meta name="theme-color" content="#202125">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -26,6 +26,7 @@
   --key:#ffffff;--key2:#e3e2de;--keyfg:#1f2125;--sel:rgba(42,111,214,.22);--curline:rgba(0,0,0,.035);
 }
 *{box-sizing:border-box}
+html{touch-action:manipulation;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
 body{overflow:hidden}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;-webkit-user-select:none;user-select:none;touch-action:manipulation}
@@ -144,7 +145,7 @@ code,pre{font-family:var(--mono)}
 .status .msg{font-family:var(--mono);font-size:12px}
 
 /* keyboard */
-#kb{flex:none;background:var(--bg);border-top:1px solid var(--bd);padding:5px 3px calc(5px + env(safe-area-inset-bottom));touch-action:manipulation;-webkit-user-select:none;user-select:none}
+#kb{flex:none;position:relative;z-index:5;background:var(--bg);border-top:1px solid var(--bd);padding:5px 3px calc(5px + env(safe-area-inset-bottom));touch-action:manipulation;-webkit-user-select:none;user-select:none}
 .krow{display:flex;gap:5px;margin:0 0 6px;padding:0 2px}
 .krow:last-child{margin-bottom:0}
 .k{touch-action:none;flex:1;height:var(--kh);border-radius:9px;background:var(--key);color:var(--keyfg);font-size:18px;display:grid;place-items:center;position:relative;box-shadow:0 1px 0 rgba(0,0,0,.35);font-family:var(--mono);min-width:0;padding:0}
@@ -209,7 +210,7 @@ code,pre{font-family:var(--mono)}
 
 /* pseudo & cheat */
 .pseudo{flex:1;min-height:0;display:flex;flex-direction:column;padding:12px;gap:8px}
-.pseudo textarea{flex:1;width:100%;border-radius:12px;border:1px solid var(--bd);background:var(--ed);padding:12px;font:15px/1.6 var(--mono);resize:none;outline:none}
+.pseudo textarea{flex:1;width:100%;border-radius:12px;border:1px solid var(--bd);background:var(--ed);padding:12px;font:16px/1.6 var(--mono);resize:none;outline:none}
 .pseudo textarea:focus{border-color:var(--acc)}
 .pseudo .row2{display:flex;align-items:center;justify-content:space-between;font-size:13px;color:var(--mute);gap:8px}
 .tog{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--fg)}
@@ -3473,10 +3474,34 @@ function celebrate(first) {
 /* ---------- viewport (keyboard) ---------- */
 function fitViewport() {
   const vv = window.visualViewport;
+  const zoomed = vv && vv.scale > 1.01;
+  if (zoomed) { resetZoom(); return; }
   const h = vv ? vv.height : window.innerHeight;
   $('#ex').style.height = h + 'px';
-  if (vv) $('#ex').style.top = vv.offsetTop + 'px';
+  $('#ex').style.top = (vv ? vv.offsetTop : 0) + 'px';
 }
+/* Safari puede ampliar la página (doble toque, pellizco o al enfocar un campo). La devolvemos a escala 1. */
+let zoomT = 0;
+function resetZoom() {
+  clearTimeout(zoomT);
+  zoomT = setTimeout(() => {
+    const m = $('meta[name=viewport]'); if (!m) return;
+    const base = 'width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content';
+    m.setAttribute('content', base + ', maximum-scale=1.0, user-scalable=no');
+    window.scrollTo(0, 0);
+    setTimeout(() => { $('#ex').style.height = window.innerHeight + 'px'; $('#ex').style.top = '0px'; }, 60);
+  }, 30);
+}
+// Bloquea el zoom de página de iOS (pellizco) en toda la app; en el editor el pellizco cambia el tamaño de letra.
+['gesturestart', 'gesturechange', 'gestureend'].forEach(ev => document.addEventListener(ev, e => { e.preventDefault(); }, { passive: false }));
+document.addEventListener('touchmove', e => { if (e.touches.length > 1 && !e.target.closest('#scroller')) e.preventDefault(); }, { passive: false });
+// Evita el zoom por doble toque en el teclado y las barras.
+let lastTouchEnd = 0;
+document.addEventListener('touchend', e => {
+  const now = Date.now();
+  if (now - lastTouchEnd < 320 && e.target.closest('#kb')) e.preventDefault();
+  lastTouchEnd = now;
+}, { passive: false });
 if (window.visualViewport) { visualViewport.addEventListener('resize', fitViewport); visualViewport.addEventListener('scroll', fitViewport); }
 window.addEventListener('resize', () => { fitViewport(); render(); });
 document.addEventListener('visibilitychange', () => { if (document.hidden) { persist(); save(true); } });
